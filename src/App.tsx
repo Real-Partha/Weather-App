@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useRef,useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { csvParse } from "d3-dsv";
 import { setWeatherData } from "./features/weatherSlice";
@@ -38,6 +38,8 @@ function App() {
   const [selectedCity, setSelectedCity] = useState<string>("All");
   const [dateRange, setDateRange] = useState({ start: "", end: "" });
   const [visibleRange, setVisibleRange] = useState({ start: 0, end: 10 });
+  const [chartWidth, setChartWidth] = useState(0);
+  const chartContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetch("/weather_data.csv")
@@ -54,6 +56,21 @@ function App() {
         dispatch(setWeatherData(parsedData));
       });
   }, [dispatch]);
+
+  useEffect(() => {
+    if (chartContainerRef.current) {
+      setChartWidth(chartContainerRef.current.offsetWidth);
+    }
+    const handleResize = () => {
+      if (chartContainerRef.current) {
+        setChartWidth(chartContainerRef.current.offsetWidth);
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
 
   const sortByDate = (data: WeatherData[]) => {
     return [...data].sort(
@@ -151,9 +168,9 @@ function App() {
           </div>
         </div>
         <div className="charts">
-          <div className="chart">
+          <div className="chart" ref={chartContainerRef} style={{ width: '100%' }}>
             <h2>Temperature</h2>
-            <LineChart width={500} height={300} data={getChartData()}>
+            <LineChart width={chartWidth-20} height={300} data={getChartData()}>
               <XAxis
                 dataKey="date"
                 tickFormatter={(value) => new Date(value).toLocaleDateString()}
@@ -165,9 +182,9 @@ function App() {
               <Line type="monotone" dataKey="temperature" stroke="#8884d8" />
             </LineChart>
           </div>
-          <div className="chart">
+          <div className="chart" ref={chartContainerRef} style={{ width: '100%' }}>
             <h2>Precipitation</h2>
-            <BarChart width={500} height={300} data={getChartData()}>
+            <BarChart width={chartWidth-20} height={300} data={getChartData()}>
               <XAxis
                 dataKey="date"
                 tickFormatter={(value) => new Date(value).toLocaleDateString()}
@@ -179,9 +196,9 @@ function App() {
               <Bar dataKey="precipitation" fill="#82ca9d" />
             </BarChart>
           </div>
-          <div className="chart">
+          <div className="chart" ref={chartContainerRef} style={{ width: '100%' }}>
             <h2>Wind Speed</h2>
-            <LineChart width={500} height={300} data={getChartData()}>
+            <LineChart width={chartWidth-20} height={300} data={getChartData()}>
               <XAxis
                 dataKey="date"
                 tickFormatter={(value) => new Date(value).toLocaleDateString()}
@@ -193,9 +210,9 @@ function App() {
               <Line type="monotone" dataKey="windSpeed" stroke="#ffc658" />
             </LineChart>
           </div>
-          <div className="chart">
+          <div className="chart" ref={chartContainerRef} style={{ width: '100%' }}>
             <h2>Humidity</h2>
-            <AreaChart width={500} height={300} data={getChartData()}>
+            <AreaChart width={chartWidth-20} height={300} data={getChartData()}>
               <XAxis
                 dataKey="date"
                 tickFormatter={(value) => new Date(value).toLocaleDateString()}
@@ -212,10 +229,10 @@ function App() {
               />
             </AreaChart>
           </div>
-          <div className="chart">
+          <div className="chart" ref={chartContainerRef} style={{ width: '100%' }}>
             <h2>Temperature vs Humidity</h2>
             <ScatterChart
-              width={500}
+              width={chartWidth-20}
               height={300}
               margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
             >
